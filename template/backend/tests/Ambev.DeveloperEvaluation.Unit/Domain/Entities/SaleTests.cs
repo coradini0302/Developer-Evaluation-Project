@@ -1,4 +1,5 @@
 using Ambev.DeveloperEvaluation.Domain.Entities;
+using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Unit.Domain.Entities.TestData;
 using Xunit;
 
@@ -104,6 +105,33 @@ public class SaleTests
         sale.Cancel();
 
         // Assert
-        Assert.True(sale.IsCancelled);
+        Assert.Equal(SaleStatus.Cancelled, sale.Status);
     }
+
+    [Fact(DisplayName = "Should throw exception when cancelling already cancelled sale")]
+    public void Given_CancelledSale_When_CancelAgain_Then_ShouldThrowException()
+    {
+        // Arrange
+        var sale = SaleTestData.GenerateValidSale();
+        sale.Cancel();
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() => sale.Cancel());
+    }
+
+    [Fact(DisplayName = "Should return zero total when sale is cancelled")]
+    public void Given_CancelledSale_When_GetTotal_Then_ShouldReturnZero()
+    {
+        // Arrange
+        var sale = SaleTestData.GenerateValidSale();
+
+        sale.AddItem(Guid.NewGuid(), "Produto", 2, 100);
+
+        // Act
+        sale.Cancel();
+
+        // Assert
+        Assert.Equal(0, sale.TotalAmount);
+    }
+
 }

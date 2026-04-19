@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Ambev.DeveloperEvaluation.Application.Sales;
+namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 
 public class CreateSaleCommand : IRequest<Guid>
 {

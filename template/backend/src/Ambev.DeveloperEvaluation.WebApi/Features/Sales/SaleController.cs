@@ -1,4 +1,6 @@
-﻿using Ambev.DeveloperEvaluation.Application.Sales;
+﻿using Ambev.DeveloperEvaluation.Application.Sales.CancelSale;
+using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
+using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CreateSale;
 using AutoMapper;
 using MediatR;
@@ -28,4 +30,23 @@ public class SalesController : ControllerBase
 
         return Ok(new CreateSaleResponse { Id = result });
     }
+
+    //[Authorize]
+    [HttpDelete("{id}/cancel")]
+    public async Task<IActionResult> CancelSale(Guid id, CancellationToken cancellationToken)
+    {
+        var command = new CancelSaleCommand { Id = id };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok( "Sale cancelled successfully");
+    }
+
+    protected IActionResult Ok(string message) =>
+        base.Ok(new ApiResponse
+        {
+            Success = true,
+            Message = message
+        });
+
 }
