@@ -2,6 +2,7 @@
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CreateSale;
 using AutoMapper;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -17,6 +18,7 @@ public class SalesController : ControllerBase
         _mapper = mapper;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create(CreateSaleRequest request)
     {

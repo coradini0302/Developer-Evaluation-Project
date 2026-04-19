@@ -16,7 +16,7 @@ namespace Ambev.DeveloperEvaluation.Common.Security
             var secretKey = configuration["Jwt:SecretKey"]?.ToString();
             ArgumentException.ThrowIfNullOrWhiteSpace(secretKey);
 
-            var key = Encoding.ASCII.GetBytes(secretKey);
+            var key = Encoding.UTF8.GetBytes(secretKey);
 
             services.AddAuthentication(x =>
             {
@@ -33,7 +33,8 @@ namespace Ambev.DeveloperEvaluation.Common.Security
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
+                    ValidateLifetime = true
                 };
             });
 
