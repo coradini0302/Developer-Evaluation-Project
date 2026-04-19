@@ -42,10 +42,7 @@ namespace Ambev.DeveloperEvaluation.Application.Auth.AuthenticateUser
 
             return new AuthenticateUserResult
             {
-                Token = token,
-                Email = user.Email,
-                Name = user.Username,
-                Role = user.Role.ToString()
+                Token = token
             };
         }
     }
