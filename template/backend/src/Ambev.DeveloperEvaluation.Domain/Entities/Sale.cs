@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ambev.DeveloperEvaluation.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,14 +19,23 @@ namespace Ambev.DeveloperEvaluation.Domain.Entities
         public Guid BranchId { get; private set; }
         public string BranchName { get; private set; }
 
-        public bool IsCancelled { get; private set; }
+        public SaleStatus Status { get; private set; }
 
         private readonly List<SaleItem> _items = new();
         public IReadOnlyCollection<SaleItem> Items => _items;
 
-        public decimal TotalAmount => _items
-            .Where(x => !x.IsCancelled)
-            .Sum(x => x.TotalAmount);
+        public decimal TotalAmount
+        {
+            get
+            {
+                if (Status == SaleStatus.Cancelled)
+                    return 0;
+
+                return _items
+                    .Where(x => !x.IsCancelled)
+                    .Sum(x => x.TotalAmount);
+            }
+        }
 
         public Sale(
             string saleNumber,
@@ -43,11 +53,13 @@ namespace Ambev.DeveloperEvaluation.Domain.Entities
 
             BranchId = branchId;
             BranchName = branchName;
+
+            Status = SaleStatus.Created;
         }
 
         public void AddItem(Guid productId, string productName, int quantity, decimal unitPrice)
         {
-            if (IsCancelled)
+            if (Status == SaleStatus.Cancelled)
                 throw new Exception("Cannot add items to a cancelled sale");
 
             var existingItem = _items
@@ -65,7 +77,10 @@ namespace Ambev.DeveloperEvaluation.Domain.Entities
 
         public void Cancel()
         {
-            IsCancelled = true;
+            if (Status == SaleStatus.Cancelled)
+                throw new InvalidOperationException("Sale already cancelled");
+
+            Status = SaleStatus.Cancelled;
         }
     }
 }

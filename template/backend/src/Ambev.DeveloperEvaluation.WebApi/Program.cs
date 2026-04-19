@@ -97,6 +97,7 @@ public class Program
             app.MapControllers();
 
             app.Run();
+
         }
         catch (Exception ex)
         {
@@ -107,4 +108,5 @@ public class Program
             Log.CloseAndFlush();
         }
     }
+
 }
