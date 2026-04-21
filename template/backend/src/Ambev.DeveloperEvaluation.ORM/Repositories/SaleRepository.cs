@@ -1,6 +1,6 @@
-﻿using Ambev.DeveloperEvaluation.Domain.Entities;
+﻿using Ambev.DeveloperEvaluation.Common.Pagination;
+using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
-using Ambev.DeveloperEvaluation.ORM;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ambev.DeveloperEvaluation.ORM.Repositories
@@ -29,8 +29,25 @@ namespace Ambev.DeveloperEvaluation.ORM.Repositories
         public async Task<Sale?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _context.Sales
-                .Include(s => s.Items)
+                .Include(s => s.Items) 
                 .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        }
+
+        public async Task<PaginatedList<Sale>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
+        {
+            var query = _context.Sales
+                .Include(s => s.Items) 
+                .AsNoTracking();
+
+            var count = await query.CountAsync(cancellationToken);
+
+            var items = await query
+                .OrderByDescending(s => s.Date) // ✔️ boa prática (ordenar)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return new PaginatedList<Sale>(items, count, page, pageSize);
         }
     }
 }
