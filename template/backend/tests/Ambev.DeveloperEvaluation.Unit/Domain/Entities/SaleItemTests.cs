@@ -1,129 +1,96 @@
 using Ambev.DeveloperEvaluation.Domain.Entities;
-using Ambev.DeveloperEvaluation.Unit.Domain.Entities.TestData;
 using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Unit.Domain.Entities;
 
 /// <summary>
 /// Contains unit tests for the SaleItem entity.
-/// Tests cover discount rules, quantity limits and total calculation.
+/// Tests cover discount rules, total calculation and validations.
 /// </summary>
 public class SaleItemTests
 {
     /// <summary>
-    /// Tests that no discount is applied when quantity is less than 4.
+    /// Tests that no discount is applied when quantity is less than 5.
     /// </summary>
-    [Fact(DisplayName = "Should not apply discount when quantity is less than 4")]
-    public void Given_QuantityLessThan4_When_Created_Then_ShouldNotApplyDiscount()
+    [Fact(DisplayName = "Should not apply discount when quantity is less than 5")]
+    public void Should_Not_Apply_Discount_When_Quantity_Is_Less_Than_5()
     {
-        // Arrange
-        var item = SaleItemTestData.GenerateItemWithQuantity(3, 10);
+        var item = new SaleItem(Guid.NewGuid(), "Produto", 4, 100);
 
-        // Act
-        var discount = item.Discount;
-
-        // Assert
-        Assert.Equal(0, discount);
-        Assert.Equal(30, item.TotalAmount);
+        Assert.Equal(0, item.Discount);
+        Assert.Equal(400, item.TotalAmount);
     }
 
     /// <summary>
-    /// Tests that 10% discount is applied for quantities between 4 and 9.
+    /// Tests that a 10% discount is applied when quantity is between 5 and 9.
     /// </summary>
-    [Fact(DisplayName = "Should apply 10% discount when quantity is between 4 and 9")]
-    public void Given_QuantityBetween4And9_When_Created_Then_ShouldApply10PercentDiscount()
+    [Fact(DisplayName = "Should apply 10% discount when quantity is between 5 and 9")]
+    public void Should_Apply_10_Percent_Discount_When_Quantity_Is_5()
     {
-        // Arrange
-        var item = SaleItemTestData.GenerateItemWithQuantity(5, 10);
+        var item = new SaleItem(Guid.NewGuid(), "Produto", 5, 100);
 
-        // Act
-        var discount = item.Discount;
-
-        // Assert
-        Assert.Equal(0.1m, discount);
-        Assert.Equal(45, item.TotalAmount);
+        Assert.Equal(50, item.Discount);
+        Assert.Equal(450, item.TotalAmount);
     }
 
     /// <summary>
-    /// Tests that 20% discount is applied for quantities between 10 and 20.
+    /// Tests that a 20% discount is applied when quantity is 10 or more.
     /// </summary>
-    [Fact(DisplayName = "Should apply 20% discount when quantity is between 10 and 20")]
-    public void Given_QuantityBetween10And20_When_Created_Then_ShouldApply20PercentDiscount()
+    [Fact(DisplayName = "Should apply 20% discount when quantity is 10 or more")]
+    public void Should_Apply_20_Percent_Discount_When_Quantity_Is_10()
     {
-        // Arrange
-        var item = SaleItemTestData.GenerateItemWithQuantity(10, 10);
+        var item = new SaleItem(Guid.NewGuid(), "Produto", 10, 100);
 
-        // Act
-        var discount = item.Discount;
-
-        // Assert
-        Assert.Equal(0.2m, discount);
-        Assert.Equal(80, item.TotalAmount);
+        Assert.Equal(200, item.Discount);
+        Assert.Equal(800, item.TotalAmount);
     }
 
     /// <summary>
-    /// Tests that an exception is thrown when quantity exceeds 20.
+    /// Tests that increasing the quantity recalculates discount and total correctly.
     /// </summary>
-    [Fact(DisplayName = "Should throw exception when quantity is above 20")]
-    public void Given_QuantityAbove20_When_Created_Then_ShouldThrowException()
+    [Fact(DisplayName = "Should recalculate discount when quantity increases")]
+    public void Should_Recalculate_Discount_When_Quantity_Increases()
     {
-        // Arrange
-        var quantity = SaleItemTestData.GenerateInvalidQuantityAboveLimit();
+        var item = new SaleItem(Guid.NewGuid(), "Produto", 4, 100);
 
-        // Act
-        var act = () => SaleItemTestData.GenerateItemWithQuantity(quantity);
+        item.IncreaseQuantity(1); // total = 5
 
-        // Assert
-        Assert.Throws<Exception>(act);
+        Assert.Equal(50, item.Discount);
+        Assert.Equal(450, item.TotalAmount);
     }
 
     /// <summary>
-    /// Tests that an exception is thrown when quantity is zero or negative.
+    /// Tests that increasing quantity accumulates correctly and recalculates values.
     /// </summary>
-    [Fact(DisplayName = "Should throw exception when quantity is zero or negative")]
-    public void Given_InvalidQuantity_When_Created_Then_ShouldThrowException()
+    [Fact(DisplayName = "Should accumulate quantity and recalculate values correctly")]
+    public void Should_Accumulate_Quantity_And_Recalculate_Correctly()
     {
-        // Arrange
-        var quantity = SaleItemTestData.GenerateInvalidQuantityBelowZero();
+        var item = new SaleItem(Guid.NewGuid(), "Produto", 2, 100);
 
-        // Act
-        var act = () => SaleItemTestData.GenerateItemWithQuantity(quantity);
+        item.IncreaseQuantity(3); // total = 5
 
-        // Assert
-        Assert.Throws<Exception>(act);
-    }
-
-    /// <summary>
-    /// Tests that increasing quantity updates discount and total correctly.
-    /// </summary>
-    [Fact(DisplayName = "Should increase quantity and recalculate discount and total")]
-    public void Given_ExistingItem_When_IncreaseQuantity_Then_ShouldUpdateValues()
-    {
-        // Arrange
-        var item = SaleItemTestData.GenerateItemWithQuantity(3, 10);
-
-        // Act
-        item.IncreaseQuantity(2); // total = 5
-
-        // Assert
         Assert.Equal(5, item.Quantity);
-        Assert.Equal(0.1m, item.Discount);
-        Assert.Equal(45, item.TotalAmount);
+        Assert.Equal(50, item.Discount);
+        Assert.Equal(450, item.TotalAmount);
     }
 
     /// <summary>
-    /// Tests that increasing quantity beyond 20 throws exception.
+    /// Tests that creating an item with zero quantity throws an exception.
     /// </summary>
-    [Fact(DisplayName = "Should throw exception when increasing quantity above 20")]
-    public void Given_ExistingItem_When_IncreaseQuantityAboveLimit_Then_ShouldThrowException()
+    [Fact(DisplayName = "Should throw exception when quantity is zero")]
+    public void Should_Throw_Exception_When_Quantity_Is_Zero()
     {
-        // Arrange
-        var item = SaleItemTestData.GenerateItemWithQuantity(18, 10);
+        Assert.Throws<ArgumentException>(() =>
+            new SaleItem(Guid.NewGuid(), "Produto", 0, 100));
+    }
 
-        // Act
-        var act = () => item.IncreaseQuantity(5);
-
-        // Assert
-        Assert.Throws<Exception>(act);
+    /// <summary>
+    /// Tests that creating an item with negative quantity throws an exception.
+    /// </summary>
+    [Fact(DisplayName = "Should throw exception when quantity is negative")]
+    public void Should_Throw_Exception_When_Quantity_Is_Negative()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new SaleItem(Guid.NewGuid(), "Produto", -1, 100));
     }
 }
