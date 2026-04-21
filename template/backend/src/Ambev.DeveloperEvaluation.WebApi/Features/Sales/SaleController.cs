@@ -24,7 +24,6 @@ public class SalesController : ControllerBase
         _mapper = mapper;
     }
 
-    // 🔥 CREATE
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create(CreateSaleRequest request)
@@ -36,7 +35,6 @@ public class SalesController : ControllerBase
         return Ok(new CreateSaleResponse { Id = result });
     }
 
-    // 🔥 CANCEL
     [Authorize]
     [HttpDelete("{id}/cancel")]
     public async Task<IActionResult> CancelSale(Guid id, CancellationToken cancellationToken)
@@ -48,7 +46,6 @@ public class SalesController : ControllerBase
         return Ok("Sale cancelled successfully");
     }
 
-    // 🔥 GET BY ID
     [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
@@ -60,7 +57,6 @@ public class SalesController : ControllerBase
         return Ok(result);
     }
 
-    // 🔥 GET ALL (PAGINAÇÃO)
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll(
@@ -79,7 +75,6 @@ public class SalesController : ControllerBase
         return Ok(result);
     }
 
-    // 🔥 PADRÃO DE RESPOSTA
     protected IActionResult Ok(string message) =>
         base.Ok(new ApiResponse
         {
