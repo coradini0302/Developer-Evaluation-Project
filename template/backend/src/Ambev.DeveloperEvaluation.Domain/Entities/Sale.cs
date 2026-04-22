@@ -75,6 +75,30 @@ namespace Ambev.DeveloperEvaluation.Domain.Entities
             _items.Add(item);
         }
 
+        public void UpdateCustomer(string customerName)
+        {
+            if (Status == SaleStatus.Cancelled)
+                throw new InvalidOperationException("Cannot update a cancelled sale");
+
+            CustomerName = customerName;
+        }
+
+        public void UpdateBranch(string branchName)
+        {
+            if (Status == SaleStatus.Cancelled)
+                throw new InvalidOperationException("Cannot update a cancelled sale");
+
+            BranchName = branchName;
+        }
+
+        public void ClearItems()
+        {
+            if (Status == SaleStatus.Cancelled)
+                throw new InvalidOperationException("Cannot update a cancelled sale");
+
+            _items.Clear();
+        }
+
         public void Cancel()
         {
             if (Status == SaleStatus.Cancelled)
