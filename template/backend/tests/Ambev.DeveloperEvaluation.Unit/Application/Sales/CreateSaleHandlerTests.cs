@@ -1,7 +1,7 @@
-﻿using Ambev.DeveloperEvaluation.Application.Sales;
 using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -9,14 +9,17 @@ namespace Ambev.DeveloperEvaluation.Unit.Application.Sales;
 
 public class CreateSaleHandlerTests
 {
+    private readonly Mock<ISaleRepository> _repositoryMock = new();
+    private readonly Mock<ILogger<CreateSaleHandler>> _loggerMock = new();
+
+    private CreateSaleHandler CreateHandler() =>
+        new(_repositoryMock.Object, _loggerMock.Object);
+
     [Fact(DisplayName = "Should create a sale successfully")]
     public async Task Given_ValidCommand_When_Handle_Then_ShouldCreateSale()
     {
         // Arrange
-        var repositoryMock = new Mock<ISaleRepository>();
-
-        var handler = new CreateSaleHandler(repositoryMock.Object);
-
+        var handler = CreateHandler();
         var command = new CreateSaleCommand
         {
             SaleNumber = "123",
@@ -31,17 +34,14 @@ public class CreateSaleHandlerTests
         var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        repositoryMock.Verify(r => r.AddAsync(It.IsAny<Sale>()), Times.Once);
+        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Sale>()), Times.Once);
         Assert.NotEqual(Guid.Empty, result);
     }
 
     [Fact(DisplayName = "Should create sale with items")]
     public async Task Given_Items_When_Handle_Then_ShouldAddItems()
     {
-        var repositoryMock = new Mock<ISaleRepository>();
-
-        var handler = new CreateSaleHandler(repositoryMock.Object);
-
+        var handler = CreateHandler();
         var command = new CreateSaleCommand
         {
             SaleNumber = "123",
@@ -63,7 +63,7 @@ public class CreateSaleHandlerTests
 
         await handler.Handle(command, CancellationToken.None);
 
-        repositoryMock.Verify(r =>
+        _repositoryMock.Verify(r =>
             r.AddAsync(It.Is<Sale>(s => s.Items.Count == 1)),
             Times.Once);
     }
@@ -72,10 +72,7 @@ public class CreateSaleHandlerTests
     public async Task Given_MultipleItems_When_Handle_Then_ShouldAddAllItems()
     {
         // Arrange
-        var repositoryMock = new Mock<ISaleRepository>();
-
-        var handler = new CreateSaleHandler(repositoryMock.Object);
-
+        var handler = CreateHandler();
         var command = new CreateSaleCommand
         {
             SaleNumber = "123",
@@ -106,21 +103,17 @@ public class CreateSaleHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        repositoryMock.Verify(r =>
+        _repositoryMock.Verify(r =>
             r.AddAsync(It.Is<Sale>(s => s.Items.Count == 2)),
             Times.Once);
-        }
+    }
 
     [Fact(DisplayName = "Should merge items with same product")]
     public async Task Given_DuplicateProducts_When_Handle_Then_ShouldMergeItems()
     {
         // Arrange
-        var repositoryMock = new Mock<ISaleRepository>();
-
-        var handler = new CreateSaleHandler(repositoryMock.Object);
-
+        var handler = CreateHandler();
         var productId = Guid.NewGuid();
-
         var command = new CreateSaleCommand
         {
             SaleNumber = "123",
@@ -151,7 +144,7 @@ public class CreateSaleHandlerTests
         await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        repositoryMock.Verify(r =>
+        _repositoryMock.Verify(r =>
             r.AddAsync(It.Is<Sale>(s =>
                 s.Items.Count == 1 &&
                 s.Items.First().Quantity == 5)),

@@ -1,4 +1,4 @@
-﻿public class SaleItem
+public class SaleItem
 {
     public Guid Id { get; private set; }
     public Guid ProductId { get; private set; }
@@ -6,6 +6,7 @@
     public int Quantity { get; private set; }
     public decimal UnitPrice { get; private set; }
 
+    /// <summary>Discount rate: 0, 0.1 or 0.2.</summary>
     public decimal Discount { get; private set; }
     public decimal TotalAmount { get; private set; }
 
@@ -25,7 +26,11 @@
 
     public void IncreaseQuantity(int quantity)
     {
-        Quantity += quantity;
+        var newQty = Quantity + quantity;
+        if (newQty > 20)
+            throw new InvalidOperationException($"Cannot exceed 20 units per item (requested: {newQty})");
+
+        Quantity = newQty;
         Recalculate();
     }
 
@@ -34,26 +39,23 @@
         if (quantity <= 0)
             throw new ArgumentException("Quantity must be greater than zero");
 
+        if (quantity > 20)
+            throw new InvalidOperationException($"Cannot exceed 20 units per item (requested: {quantity})");
+
         Quantity = quantity;
     }
 
     private void Recalculate()
     {
         var total = Quantity * UnitPrice;
-
-        Discount = CalculateDiscount(total, Quantity);
-
-        TotalAmount = total - Discount;
+        Discount = CalculateDiscountRate(Quantity);
+        TotalAmount = total - total * Discount;
     }
 
-    private decimal CalculateDiscount(decimal total, int quantity)
+    private static decimal CalculateDiscountRate(int quantity)
     {
-        if (quantity >= 10)
-            return total * 0.2m;
-
-        if (quantity >= 5)
-            return total * 0.1m;
-
-        return 0;
+        if (quantity >= 10) return 0.2m;
+        if (quantity >= 4)  return 0.1m;
+        return 0m;
     }
 }

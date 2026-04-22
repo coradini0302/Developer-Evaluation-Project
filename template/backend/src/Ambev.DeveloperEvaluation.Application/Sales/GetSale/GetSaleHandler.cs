@@ -48,7 +48,7 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.GetSale
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
                     TotalAmount = i.TotalAmount,
-                    Discount = i.Discount
+                    Discount = i.Quantity * i.UnitPrice * i.Discount
                 }).ToList()
             };
         }

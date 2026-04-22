@@ -28,7 +28,7 @@ public class SaleItemTests
     }
 
     /// <summary>
-    /// Tests that 10% discount is applied for quantities between 4 and 9.
+    /// Tests that 10% discount rate is applied for quantities between 4 and 9.
     /// </summary>
     [Fact(DisplayName = "Should apply 10% discount when quantity is between 4 and 9")]
     public void Given_QuantityBetween4And9_When_Created_Then_ShouldApply10PercentDiscount()
@@ -45,7 +45,7 @@ public class SaleItemTests
     }
 
     /// <summary>
-    /// Tests that 20% discount is applied for quantities between 10 and 20.
+    /// Tests that 20% discount rate is applied for quantities between 10 and 20.
     /// </summary>
     [Fact(DisplayName = "Should apply 20% discount when quantity is between 10 and 20")]
     public void Given_QuantityBetween10And20_When_Created_Then_ShouldApply20PercentDiscount()
@@ -74,7 +74,7 @@ public class SaleItemTests
         var act = () => SaleItemTestData.GenerateItemWithQuantity(quantity);
 
         // Assert
-        Assert.Throws<Exception>(act);
+        Assert.ThrowsAny<Exception>(act);
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public class SaleItemTests
         var act = () => SaleItemTestData.GenerateItemWithQuantity(quantity);
 
         // Assert
-        Assert.Throws<Exception>(act);
+        Assert.ThrowsAny<Exception>(act);
     }
 
     /// <summary>
@@ -124,6 +124,6 @@ public class SaleItemTests
         var act = () => item.IncreaseQuantity(5);
 
         // Assert
-        Assert.Throws<Exception>(act);
+        Assert.ThrowsAny<Exception>(act);
     }
 }
