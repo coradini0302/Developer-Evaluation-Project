@@ -79,6 +79,10 @@ public class Program
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             var app = builder.Build();
+
+            // Apply EF Core migrations automatically on startup with retry logic
+            ApplyMigrations(app);
+
             app.UseMiddleware<ValidationExceptionMiddleware>();
 
             if (app.Environment.IsDevelopment())
@@ -87,7 +91,10 @@ public class Program
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            // Only redirect to HTTPS when an HTTPS port is explicitly configured.
+            // This avoids redirect loops inside Docker containers that expose HTTP only.
+            if (!string.IsNullOrEmpty(app.Configuration["ASPNETCORE_HTTPS_PORTS"]))
+                app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -97,7 +104,6 @@ public class Program
             app.MapControllers();
 
             app.Run();
-
         }
         catch (Exception ex)
         {
@@ -109,4 +115,30 @@ public class Program
         }
     }
 
+    private static void ApplyMigrations(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<DefaultContext>();
+
+        for (var attempt = 1; attempt <= 5; attempt++)
+        {
+            try
+            {
+                Log.Information("Applying database migrations (attempt {Attempt}/5)...", attempt);
+                db.Database.Migrate();
+                Log.Information("Database migrations applied successfully");
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Migration attempt {Attempt}/5 failed", attempt);
+                if (attempt == 5)
+                {
+                    Log.Fatal("All migration attempts exhausted. Application cannot start");
+                    throw;
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(5 * attempt));
+            }
+        }
+    }
 }

@@ -14,6 +14,7 @@
 **/azds.yaml
 **/bin
 **/charts
+tests/
 **/docker-compose*
 **/Dockerfile*
 **/node_modules
