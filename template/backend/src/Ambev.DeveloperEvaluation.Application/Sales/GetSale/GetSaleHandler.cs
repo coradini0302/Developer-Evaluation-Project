@@ -1,23 +1,38 @@
 ﻿using Ambev.DeveloperEvaluation.Domain.Repositories;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.GetSale
 {
     public class GetSaleHandler : IRequestHandler<GetSaleRequest, GetSaleResponse>
     {
         private readonly ISaleRepository _repository;
+        private readonly ILogger<GetSaleHandler> _logger;
 
-        public GetSaleHandler(ISaleRepository repository)
+        public GetSaleHandler(ISaleRepository repository, ILogger<GetSaleHandler> logger)
         {
             _repository = repository;
+            _logger = logger;
         }
 
         public async Task<GetSaleResponse> Handle(GetSaleRequest request, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Fetching sale with id {SaleId}", request.Id);
+
             var sale = await _repository.GetByIdAsync(request.Id, cancellationToken);
 
             if (sale == null)
+            {
+                _logger.LogWarning("Sale {SaleId} not found", request.Id);
                 throw new KeyNotFoundException("Sale not found");
+            }
+
+            _logger.LogInformation(
+                "Sale retrieved successfully | SaleId: {SaleId} | Customer: {CustomerName} | Total: {TotalAmount}",
+                sale.Id,
+                sale.CustomerName,
+                sale.TotalAmount
+            );
 
             return new GetSaleResponse
             {
